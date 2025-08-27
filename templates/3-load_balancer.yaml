@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+  VpcId:
+    Type: String
+  PublicSubnetIds:
+    Type: String
+  LoadBalancerSgId:
+    Type: String
+
+#------------------------------------------------------
+# Resources: load balancer, target group, listener 
+#------------------------------------------------------
+Resources:
+  #------------------------------------------------------
+  # Load Balancer
+  #------------------------------------------------------
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets: !Split [",", !Ref PublicSubnetIds]
+      SecurityGroups: 
+        - !Ref LoadBalancerSgId
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-lb"
+        - Key: Environment
+          Value: !Ref Env
+
+  #------------------------------------------------------
+  # Target Groups
+  #------------------------------------------------------
+  BackendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /api/healthcheck
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-backend-tg"
+        - Key: Environment
+          Value: !Ref Env
+  
+  FrontendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-frontend-tg"
+        - Key: Environment
+          Value: !Ref Env
+
+  #------------------------------------------------------
+  # Listeners And Listener Rules
+  #------------------------------------------------------
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref FrontendTargetGroup
+
+  BackendListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref Listener
+      Priority: 10
+      Conditions:
+        - Field:  path-pattern
+          Values:
+            - /api/*
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroup
+
+
+#------------------------------------------------------
+# Outputs 
+#------------------------------------------------------
+Outputs:
+  LoadBalancerArn:
+    Description: Load balancer Arn
+    Value: !Ref LoadBalancer
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-lb-arn
+  BackendTargetGroupArn:
+    Description: Backend Target group
+    Value: !Ref BackendTargetGroup
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-backend-tg-arn
+  FrontendTargetGroupArn:
+    Description: Frontend Target group
+    Value: !Ref FrontendTargetGroup
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-frontend-tg-arn

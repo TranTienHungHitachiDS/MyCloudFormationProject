@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+  
+  BackendDockerImage:
+    Type: String
+    Default: "hungtran679/volunteerwork-backend:latest"
+  FrontendDockerImage:
+    Type: String
+    Default: "hungtran679/volunteerwork-frontend:latest"
+  
+  BackendPort:
+    Type: Number
+  FrontendPort:
+    Type: Number
+  
+  EcsTaskRoleArn:
+    Type: String
+  EcsTaskExecutionRoleArn:
+    Type: String
+  VpcId:
+    Type: String
+  PrivateAppSubnetIds:
+    Type: String
+  LoadBalancerId:
+    Type: String
+
+#------------------------------------------------------
+# Task Definitions and Log Group
+#------------------------------------------------------
+Resources:
+  BackendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ProjectName}-${Env}-backend-family
+      TaskRoleArn: !Ref EcsTaskRoleArn
+      ExecutionRoleArn: !Ref EcsTaskExecutionRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ContainerDefinitions:
+        - Name: backend
+          Image: !Ref BackendDockerImage
+          PortMappings:
+            - ContainerPort: !Ref BackendPort
+          Privileged: false
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: backend
+
+  FrontendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ProjectName}-${Env}-backend-family
+      TaskRoleArn: !Ref EcsTaskRoleArn
+      ExecutionRoleArn: !Ref EcsTaskExecutionRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ContainerDefinitions:
+        - Name: frontend
+          Image: !Ref FrontendDockerImage
+          PortMappings:
+            - ContainerPort: !Ref FrontendPort
+          Privileged: false
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: frontend
+          Environment:
+            - Name: NEXT_PUBLIC_API_BASE_URL
+              Value: /api
+            - Name: HOSTNAME
+              Value: 0.0.0.0
+  
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub "/ecs/${ProjectName}"  
+      RetentionInDays: 7
+  
+  #------------------------------------------------------
+  # ECS Services
+  #------------------------------------------------------
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Ref ServiceName
+      TaskDefinition:
+        Fn::ImportValue: !Sub ${TaskDefinitionStackName}-task-def
+      Cluster:
+        Fn::ImportValue: !Sub ${ClusterStackName}-ecscluster
+      LaunchType: FARGATE
+      DesiredCount: !Ref DesiredCount
+      DeploymentController:
+        Type: ECS
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          # AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::ImportValue: !Sub ${NetworkStackName}-ecs-fargate-sg
+          Subnets:
+            - Fn::ImportValue: !Sub ${NetworkStackName}-private-subnet-1
+            - Fn::ImportValue: !Sub ${NetworkStackName}-private-subnet-2
+      LoadBalancers:
+        - ContainerName: !Ref ContainerName
+          ContainerPort: 80
+          TargetGroupArn:
+            Fn::ImportValue: !Sub ${ALBStackName}-target-group
+      HealthCheckGracePeriodSeconds: 60
+
+  ServiceScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 4
+      MinCapacity: 1
+      ResourceId:
+        Fn::Join:
+          - /
+          - - service
+            - Fn::ImportValue: !Sub ${ClusterStackName}-ecscluster
+            - !Ref ServiceName
+      RoleARN: !GetAtt AutoScalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  ServiceScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: AverageCPUUtilizationPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ServiceScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 80.0
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+
+

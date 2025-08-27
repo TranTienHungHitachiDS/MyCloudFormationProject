@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+
+#------------------------------------------------------
+# ECS Resources
+#------------------------------------------------------
+Resources:
+  #------------------------------------------------------
+  # ECS Cluster
+  #------------------------------------------------------
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${ProjectName}-${Env}-ecs-cluster
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+#------------------------------------------------------
+# Outputs 
+#------------------------------------------------------
+Outputs:
+  EcsClusterId:
+    Value: !Ref EcsCluster
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-ecs-cluster-id

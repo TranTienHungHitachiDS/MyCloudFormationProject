@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  ProjectName:
+    Type: String
+    Default: MyCloudFormationProject
+  Env:
+    Type: String
+    Default: dev
+Resources:
+  NetworkStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/cloudformation-antifact-bucket/217f63460ad330d5ac04d2b743a3bf0a.template
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        Env:
+          Ref: Env
+        VpcCIDR: 10.0.0.0/16
+  SecurityGroupStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/cloudformation-antifact-bucket/bf50e61fb96316d2cac6b09c037d896d.template
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        Env:
+          Ref: Env
+        VpcId:
+          Fn::GetAtt:
+          - NetworkStack
+          - Outputs.VpcId
+  LoadBalancerStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/cloudformation-antifact-bucket/80e267a92d2cc297fcb2332d9ae29a99.template
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        Env:
+          Ref: Env
+        VpcId:
+          Fn::GetAtt:
+          - NetworkStack
+          - Outputs.VpcId
+        PublicSubnetIds:
+          Fn::GetAtt:
+          - NetworkStack
+          - Outputs.PublicSubnetIds
+        LoadBalancerSgId:
+          Fn::GetAtt:
+          - SecurityGroupStack
+          - Outputs.LoadBalancerSgId
+  IAMStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/cloudformation-antifact-bucket/89d788125cd67704ad7d25d9780b48fc.template
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        Env:
+          Ref: Env

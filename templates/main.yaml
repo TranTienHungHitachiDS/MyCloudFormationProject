@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+    Default: MyCloudFormationProject
+
+  Env:
+    Type: String
+    Default: dev
+
+#------------------------------------------------------
+# Nested Stack
+#------------------------------------------------------
+Resources:
+  NetworkStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: 1-network.yaml
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Env: !Ref Env
+        VpcCIDR: 10.0.0.0/16
+
+  SecurityGroupStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: 2-security_group.yaml
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Env: !Ref Env
+        VpcId: !GetAtt NetworkStack.Outputs.VpcId
+        BackendPort: 8080
+        FrontendPort: 3000
+
+  LoadBalancerStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: 3-load_balancer.yaml
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Env: !Ref Env
+        VpcId: !GetAtt NetworkStack.Outputs.VpcId
+        PublicSubnetIds: !GetAtt NetworkStack.Outputs.PublicSubnetIds
+        LoadBalancerSgId: !GetAtt SecurityGroupStack.Outputs.LoadBalancerSgId
+    
+  IAMStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: 4-iam.yaml
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Env: !Ref Env

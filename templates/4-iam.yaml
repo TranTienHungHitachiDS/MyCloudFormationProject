@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+
+#------------------------------------------------------
+# IAM Roles and Policies
+#------------------------------------------------------
+Resources:
+  EcsTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+      Policies:
+        - PolicyName: SsmMessagesAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssmmessages:CreateControlChannel"
+                  - "ssmmessages:CreateDataChannel"
+                  - "ssmmessages:OpenControlChannel"
+                  - "ssmmessages:OpenDataChannel"
+                Resource: "*"
+
+  EcsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies: 
+        - PolicyName: ExtendedLogPermission
+          PolicyDocument: 
+            Version: "2012-10-17" 
+            Statement: 
+              - Effect: Allow 
+                Action: 
+                  - "logs:CreateLogGroup" 
+                Resource: "*"
+
+  EcsAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs.application-autoscaling.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: MyAutoscalingECSServicePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:DescribeServices
+                  - ecs:UpdateService
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:PutMetricAlarm
+                Resource: "*"
+
+#------------------------------------------------------
+# Outputs 
+#------------------------------------------------------
+Outputs:
+  EcsTaskRoleArn:
+    Description: Ecs Task Role Arn
+    Value: !Ref EcsTaskRole
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-ecs-task-role-arn
+  TaskExecutionRoleArn:
+    Description: Ecs Task Execution Role Arn
+    Value: !Ref EcsTaskExecutionRole
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-ecs-task-execution-role-arn
+  EcsAutoScalingRoleArn:
+    Description: Ecs Auto Scaling Role Arn
+    Value: !Ref EcsAutoScalingRole
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-ecs-auto-scaling-role-arn
