@@ -48,15 +48,6 @@ Resources:
               Service: ecs-tasks.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-      Policies: 
-        - PolicyName: ExtendedLogPermission
-          PolicyDocument: 
-            Version: "2012-10-17" 
-            Statement: 
-              - Effect: Allow 
-                Action: 
-                  - "logs:CreateLogGroup" 
-                Resource: "*"
 
   EcsAutoScalingRole:
     Type: AWS::IAM::Role

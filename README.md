@@ -1,6 +1,6 @@
 ## Commands
 
-### 1. Package the Template
+### 1. Package the Template to S3
 aws cloudformation package --template-file templates/main.yaml --s3-bucket cloudformation-antifact-bucket --output-template-file packaged-main.yaml
 
 ### 2. Validate the Template
