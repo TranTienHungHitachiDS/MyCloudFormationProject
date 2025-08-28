@@ -8,12 +8,20 @@ Parameters:
     Type: String
   Env:
     Type: String
+  
   VpcId:
     Type: String
   PublicSubnetIds:
     Type: String
   LoadBalancerSgId:
     Type: String
+
+  BackendPort:
+    Type: Number
+    Default: 8080
+  FrontendPort:
+    Type: Number
+    Default: 80
 
 #------------------------------------------------------
 # Resources: load balancer, target group, listener 
@@ -41,13 +49,13 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       VpcId: !Ref VpcId
-      Port: 80
+      Port: !Ref BackendPort
       Protocol: HTTP
       TargetType: ip
       Matcher:
         HttpCode: 200-299
       HealthCheckIntervalSeconds: 10
-      HealthCheckPath: /api/healthcheck
+      HealthCheckPath: /actuator/health
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
@@ -61,7 +69,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       VpcId: !Ref VpcId
-      Port: 80
+      Port: !Ref FrontendPort
       Protocol: HTTP
       TargetType: ip
       Matcher:
@@ -108,11 +116,6 @@ Resources:
 # Outputs 
 #------------------------------------------------------
 Outputs:
-  LoadBalancerArn:
-    Description: Load balancer Arn
-    Value: !Ref LoadBalancer
-    Export:
-      Name: !Sub ${ProjectName}-${Env}-lb-arn
   BackendTargetGroupArn:
     Description: Backend Target group
     Value: !Ref BackendTargetGroup

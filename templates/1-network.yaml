@@ -299,23 +299,3 @@ Outputs:
     Value: !Join [",", [!Ref PrivateDataSubnet1, !Ref PrivateDataSubnet2]]
     Export:
       Name: !Sub ${ProjectName}-${Env}-private-data-subnet-ids
-
-  InternetGatewayId:
-    Value: !Ref InternetGateway
-    Export:
-      Name: !Sub ${ProjectName}-${Env}-igw-id
-
-  NatGatewayId:
-    Value: !Ref NatGateway
-    Export:
-      Name: !Sub ${ProjectName}-${Env}-nat-gw-id
-
-  PublicRouteTableId:
-    Value: !Ref PublicRouteTable
-    Export:
-      Name: !Sub ${ProjectName}-${Env}-public-rt-id
-
-  PrivateRouteTableId:
-    Value: !Ref PrivateRouteTable
-    Export:
-      Name: !Sub ${ProjectName}-${Env}-private-rt-id

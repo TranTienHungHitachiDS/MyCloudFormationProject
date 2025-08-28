@@ -12,8 +12,13 @@ Parameters:
     Type: String
   BackendPort:
     Type: Number
+    Default: 8080
   FrontendPort:
     Type: Number
+    Default: 80
+  DbPort:
+    Type: Number
+    Default: 3306
   
 
 #------------------------------------------------------
@@ -43,6 +48,29 @@ Resources:
         - Key: Environment
           Value: !Ref Env
 
+  #------------------------------------------------------
+  # EC2 SGs
+  #------------------------------------------------------
+  Ec2BastionSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${ProjectName}-${Env}-ec2-bastion-sg
+      GroupDescription: Bastion Host SG
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-ec2-bastion-sg"
+        - Key: Environment
+          Value: !Ref Env
+  
   #------------------------------------------------------
   # ECS Service SGs
   #------------------------------------------------------
@@ -85,6 +113,29 @@ Resources:
           Value: !Sub "${ProjectName}-${Env}-frontend-sg"
         - Key: Environment
           Value: !Ref Env
+  
+  #------------------------------------------------------
+  # ECS Service SGs
+  #------------------------------------------------------
+  DatabaseSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${ProjectName}-${Env}-database-sg
+      GroupDescription: Security group for RDS database
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref DbPort
+          ToPort: !Ref DbPort
+          CidrIp: "0.0.0.0/0"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-database-sg"
+        - Key: Environment
+          Value: !Ref Env
 
 #------------------------------------------------------
 # Export:
@@ -94,6 +145,10 @@ Outputs:
     Value: !Ref LoadBalancerSg
     Export:
       Name: !Sub ${ProjectName}-${Env}-lb-sg-id
+  Ec2BastionSgId:
+    Value: !Ref Ec2BastionSg
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-ec2-bastion-sg-id
   EcsBackendServiceSgId:
     Value: !Ref EcsBackendServiceSg
     Export:
@@ -102,3 +157,8 @@ Outputs:
     Value: !Ref EcsFrontendServiceSg
     Export:
       Name: !Sub ${ProjectName}-${Env}-frontend-sg-id
+  DatabaseSgId:
+    Value: !Ref DatabaseSg
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-database-sg-id
+  

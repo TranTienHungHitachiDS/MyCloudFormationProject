@@ -16,6 +16,7 @@ Resources:
   EcsTaskRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub ${ProjectName}-${Env}-ecs-task-role
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -35,10 +36,16 @@ Resources:
                   - "ssmmessages:OpenControlChannel"
                   - "ssmmessages:OpenDataChannel"
                 Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Env}-ecs-task-role
+        - Key: Environment
+          Value: !Ref Env
 
   EcsTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub ${ProjectName}-${Env}-ecs-task-execution-role
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -48,10 +55,26 @@ Resources:
               Service: ecs-tasks.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: SecretManagerAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                  - "secretsmanager:DescribeSecret"
+                Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Env}-ecs-task-execution-role
+        - Key: Environment
+          Value: !Ref Env
 
   EcsAutoScalingRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub ${ProjectName}-${Env}-ecs-autoscaling-role
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -72,6 +95,11 @@ Resources:
                   - cloudwatch:PutMetricAlarm
                   - cloudwatch:PutMetricAlarm
                 Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Env}-ecs-autoscaling-role
+        - Key: Environment
+          Value: !Ref Env
 
 #------------------------------------------------------
 # Outputs 
@@ -79,16 +107,16 @@ Resources:
 Outputs:
   EcsTaskRoleArn:
     Description: Ecs Task Role Arn
-    Value: !Ref EcsTaskRole
+    Value: !GetAtt EcsTaskRole.Arn
     Export:
       Name: !Sub ${ProjectName}-${Env}-ecs-task-role-arn
-  TaskExecutionRoleArn:
+  EcsTaskExecutionRoleArn:
     Description: Ecs Task Execution Role Arn
-    Value: !Ref EcsTaskExecutionRole
+    Value: !GetAtt EcsTaskExecutionRole.Arn
     Export:
       Name: !Sub ${ProjectName}-${Env}-ecs-task-execution-role-arn
   EcsAutoScalingRoleArn:
     Description: Ecs Auto Scaling Role Arn
-    Value: !Ref EcsAutoScalingRole
+    Value: !GetAtt EcsAutoScalingRole.Arn
     Export:
       Name: !Sub ${ProjectName}-${Env}-ecs-auto-scaling-role-arn

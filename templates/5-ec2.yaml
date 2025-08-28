@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+
+  PublicSubnetIds:
+    Description: Public subnet IDs
+    Type: String
+  
+  Ec2BastionSgId:
+    Description: Bastion Host SG ID
+    Type: String
+
+  BastionInstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t2.micro
+  BastionAmiId:
+    Description: AIM ID of Bastion Host
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/focal/stable/current/amd64/hvm/ebs-gp2/ami-id # Ubuntu 20.04 LTS\
+  
+Resources:
+  SshKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyFormat: pem
+      KeyName: !Sub ${ProjectName}-${Env}-ssh-keypair
+      PublicKeyMaterial: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCsb6ZyCsZTq4rDsvYNggKWTkitVTYlRy3qkZyHhE97feflwRWdDBqT6FuxKzak6u1ONJgcZPEpnkqGyNpM9mDqJm8AMDItyx1dD54ZLx9neAmaAe9xcBCYVHfDNmkJH5JlITfcpbp7mceV8H6T/pi5At4w5C+Zz5QCQYtbvX5Lbdl0PZxaCGLFYHUjm0v9eZxB0+OQYiOZyPWgeyNaujuGgj1GoBuA2GicIZInaDW5YRUOiBWx8Dr9CJFx8IzCdv1VSSHCHpNcEckf/NiHNkHUpJzn5GVjP8q2XPoScqcxejNOxyvSWkRews9BB6ckYn3p+1F6dD1pcQOBt3BnK8+N00RwhF2H7/t9p8MQKgrEs4C5PS4rzGnskaUCnvIXpgTW52llgOOEQ8VVYObvn2sjl0FeH+YJHTkxDPiDll3SAg+4sqfo0sfFcR0Nmst94sOABpfzQiTgJuByYYt5Lb3ZNDdDNwhDaBNhkh+Ry9oAP1TvEBaWcEH2gCfe+pQk0ys=
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-ssh-keypair"
+        - Key: Environment
+          Value: !Ref Env
+
+  BastionHostInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref BastionInstanceType
+      SubnetId: !Select
+        - 0
+        - !Split [",", !Ref PublicSubnetIds]
+      SecurityGroupIds:
+        - !Ref Ec2BastionSgId
+      KeyName: !Ref SshKeyPair
+      ImageId: !Ref BastionAmiId
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-bastion-host"
+        - Key: Environment
+          Value: !Ref Env
