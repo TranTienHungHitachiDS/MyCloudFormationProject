@@ -1,0 +1,162 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+    Default: dev
+  
+  DbPort:
+    Type: Number
+
+
+#------------------------------------------------------
+# Resources: RDS Cluster, DB Group, Instace 
+#------------------------------------------------------
+Resources:
+  #------------------------------------------------------
+  # Database Security group 
+  #------------------------------------------------------
+  DbSecurityGroup:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::EC2::SecurityGroup"
+    DeletionPolicy: "Delete"
+    Properties:
+      GroupName: !Sub ${ProjectName}-${Env}-rds-sg
+      GroupDescription: Security group for RDS Aurora Postgresql DB
+      VpcId:
+        Ref: "EC2VPC"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: !Ref DbPort
+        ToPort: !Ref DbPort
+        CidrIp: "0.0.0.0/0"
+      SecurityGroupEgress:
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "-1"
+        FromPort: -1
+        ToPort: -1
+  
+  #------------------------------------------------------
+  # RDS Cluster
+  #------------------------------------------------------
+  RDSDBCluster:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::RDS::DBCluster"
+    DeletionPolicy: "Delete"
+    Properties:
+      DatabaseInsightsMode: "standard"
+      StorageEncrypted: true
+      AssociatedRoles: []
+      EnableHttpEndpoint: false
+      EngineMode: "provisioned"
+      Port: !Ref DbPort
+      DBClusterIdentifier: ${ProjectName}-${Env}-rds-cluster
+      VpcSecurityGroupIds:
+      - !Ref DbSecurityGroup
+      CopyTagsToSnapshot: true
+      Engine: "aurora-postgresql"
+      EngineLifecycleSupport: "open-source-rds-extended-support-disabled"
+      EngineVersion: "16.6"
+      StorageType: "aurora"
+      KmsKeyId:
+        Fn::GetAtt:
+        - "KMSKey"
+        - "Arn"
+      EnableLocalWriteForwarding: false
+      AutoMinorVersionUpgrade: true
+      DBSubnetGroupName:
+        Ref: "RDSDBSubnetGroupDefaultvpc0ac771092f0d72dc6"
+      DeletionProtection: true
+      AllocatedStorage: 1
+      ManageMasterUserPassword: false
+      MasterUserSecret: {}
+      MasterUsername: "postgres"
+      EnableIAMDatabaseAuthentication: false
+      DBClusterParameterGroupName: "default.aurora-postgresql16"
+      BackupRetentionPeriod: 30
+      EnableCloudwatchLogsExports:
+      - "iam-db-auth-error"
+      - "instance"
+      - "postgresql"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-rds-cluster"
+        - Key: Environment
+          Value: !Ref Env
+  
+  RDSDBInstance:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::RDS::DBInstance"
+    DeletionPolicy: "Delete"
+    Properties:
+      DatabaseInsightsMode: "standard"
+      StorageEncrypted: true
+      AssociatedRoles: []
+      Port: !Ref DbPort
+      DBClusterIdentifier:
+        Ref: "RDSDBCluster"
+      ProcessorFeatures: []
+      StorageThroughput: 0
+      PreferredBackupWindow: "17:35-18:05"
+      MonitoringInterval: 0
+      DBParameterGroupName: "default.aurora-postgresql16"
+      NetworkType: "IPV4"
+      DedicatedLogVolume: false
+      CopyTagsToSnapshot: false
+      MultiAZ: false
+      Engine: "aurora-postgresql"
+      Tags: []
+      EngineLifecycleSupport: "open-source-rds-extended-support-disabled"
+      LicenseModel: "postgresql-license"
+      EngineVersion: "16.6"
+      StorageType: "aurora"
+      KmsKeyId:
+        Fn::GetAtt:
+        - "KMSKey"
+        - "Arn"
+      DBInstanceClass: "db.r7g.large"
+      AvailabilityZone: "ap-southeast-1a"
+      OptionGroupName: "default:aurora-postgresql-16"
+      PreferredMaintenanceWindow: "wed:14:33-wed:15:03"
+      EnablePerformanceInsights: false
+      AutoMinorVersionUpgrade: true
+      DBSubnetGroupName:
+        Ref: "RDSDBSubnetGroupDefaultvpc0ac771092f0d72dc6"
+      DeletionProtection: false
+      DBInstanceIdentifier: "mdms-postgresql-database"
+      AllocatedStorage: "1"
+      BackupTarget: "region"
+      CACertificateIdentifier: "rds-ca-rsa2048-g1"
+      ManageMasterUserPassword: false
+      MasterUserSecret: {}
+      VPCSecurityGroups:
+      - Fn::GetAtt:
+        - "EC2SecurityGroup"
+        - "GroupId"
+      DBSecurityGroups: []
+      MasterUsername: "postgres"
+      EnableIAMDatabaseAuthentication: false
+      PromotionTier: 1
+      PubliclyAccessible: false
+      BackupRetentionPeriod: 30
+      EnableCloudwatchLogsExports:
+      - "iam-db-auth-error"
+      - "instance"
+      - "postgresql"
+  RDSDBSubnetGroupDefaultvpc0ac771092f0d72dc6:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::RDS::DBSubnetGroup"
+    DeletionPolicy: "Delete"
+    Properties:
+      DBSubnetGroupDescription: "Created from the RDS Management Console"
+      SubnetIds:
+      - Ref: "EC2SubnetB2"
+      - Ref: "EC2SubnetTE"
+      - Ref: "EC2SubnetI3"
+      - Ref: "EC2Subnet"
+      DBSubnetGroupName: "default-vpc-0ac771092f0d72dc6"

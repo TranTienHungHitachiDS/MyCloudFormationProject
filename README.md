@@ -29,7 +29,7 @@ aws cloudformation describe-change-set --stack-name MyStack --change-set-name Ch
 
 ### 6. Execute Change Set
 ```bash
-aws cloudformation execute-change-set --stack-name MyStack --change-set-name ChangeSet1
+aws cloudformation execute-change-set --stack-name MyStack --change-set-name ChangeSet1 --capabilities CAPABILITY_NAMED_IAM
 ```
 
 ### 7. Or you can deploy the template directly instead of runnign steps 4,5,6

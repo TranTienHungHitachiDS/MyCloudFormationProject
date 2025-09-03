@@ -1,0 +1,10 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "MyCloudFormationProject"
+    },
+    {
+        "ParameterKey": "Env",
+        "ParameterValue": "dev"
+    }
+]

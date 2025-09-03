@@ -1,0 +1,38 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "mdms"
+    },
+    {
+        "ParameterKey": "Env",
+        "ParameterValue": "dev"
+    },
+    {
+        "ParameterKey": "VpcCidr",
+        "ParameterValue": "10.0.0.0/16"
+    },
+    {
+        "ParameterKey": "PublicSubnet1Cidr",
+        "ParameterValue": "10.0.0.0/24"
+    },
+    {
+        "ParameterKey": "PublicSubnet2Cidr",
+        "ParameterValue": "10.0.1.0/24"
+    },
+    {
+        "ParameterKey": "PrivateAppSubnet1Cidr",
+        "ParameterValue": "10.0.2.0/24"
+    },
+    {
+        "ParameterKey": "PrivateAppSubnet2Cidr",
+        "ParameterValue": "10.0.3.0/24"
+    },
+        {
+        "ParameterKey": "PrivateDataSubnet1Cidr",
+        "ParameterValue": "10.0.4.0/24"
+    },
+    {
+        "ParameterKey": "PrivateDataSubnet2Cidr",
+        "ParameterValue": "10.0.5.0/24"
+    }
+]
