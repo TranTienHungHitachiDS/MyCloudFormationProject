@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+    Default: dev
+
+#------------------------------------------------------
+# IAM Roles and Policies
+#------------------------------------------------------
+Resources:
+  #------------------------------------------------------
+  # Roles and Policies For RDS database
+  #------------------------------------------------------
+  RdsProxyRole:
+    UpdateReplacePolicy: Delete
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      RoleName: !Sub ${ProjectName}-${Env}-rds-proxy-role
+      Path: /service-role/
+      Description: Allows RDS Proxy access to database connection credentials
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+  
+  RdsProxyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub ${ProjectName}-${Env}-rds-proxy-policy
+      Path: /service-role/
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Resource: "*"
+            Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Sid: GetSecretValue
+          - Sid: DecryptSecretValue
+            Condition:
+              StringEquals:
+                kms:ViaService: secretsmanager.ap-southeast-1.amazonaws.com
+            Resource: "*"
+            Action:
+              - kms:Decrypt
+            Effect: Allow
+      Roles:
+        - !Ref RdsProxyRole
+
+#------------------------------------------------------
+# Outputs 
+#------------------------------------------------------
+Outputs:
+  RdsProxyRoleArn:
+    Description: Eds Proxy Role Arn
+    Value: !GetAtt RdsProxyRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-rds-proxy-role-arn

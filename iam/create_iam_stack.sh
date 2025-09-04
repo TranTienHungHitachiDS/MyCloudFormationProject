@@ -6,7 +6,7 @@ set -o pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-STACK_NAME="mdms-rds-stack"
+STACK_NAME="mdms-iam-stack"
 PROFILE="personal"
 TEMPLATE_FILE="./template.yaml"
 PARAMETER_FILE="./parameters/common.json"

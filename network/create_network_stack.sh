@@ -6,8 +6,9 @@ set -o pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-STACK_NAME="MyCloudFormationProject-network-stack"
+STACK_NAME="mdms-network-stack"
 PROFILE="personal"
+
 TEMPLATE_FILE="./template.yaml"
 PARAMETER_FILE="./parameters/common.json"
 

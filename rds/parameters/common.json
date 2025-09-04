@@ -1,0 +1,30 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "mdms"
+    },
+    {
+        "ParameterKey": "Env",
+        "ParameterValue": "dev"
+    },
+    {
+        "ParameterKey": "KmsCallerAccountId",
+        "ParameterValue": "770825631895"
+    },
+    {
+        "ParameterKey": "DbPort",
+        "ParameterValue": "5432"
+    },
+    {
+        "ParameterKey": "DbUser",
+        "ParameterValue": "postgres"
+    },
+    {
+        "ParameterKey": "DbInstanceClass",
+        "ParameterValue": "db.t3.medium"
+    },
+    {
+        "ParameterKey": "DbPort",
+        "ParameterValue": "5432"
+    }
+]
