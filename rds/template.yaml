@@ -163,7 +163,7 @@ Resources:
       VpcSecurityGroupIds:
         - !Ref DbSecurityGroup
 
-  MyDBProxyTargetGroup:
+  DBProxyTargetGroup:
     Type: AWS::RDS::DBProxyTargetGroup
     Properties:
       DBProxyName: !Ref RdsDbProxy
