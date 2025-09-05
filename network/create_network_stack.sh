@@ -5,9 +5,9 @@ set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
-
-STACK_NAME="mdms-network-stack"
-PROFILE="personal"
+\
+PROFILE=$1
+STACK_NAME=$2
 
 TEMPLATE_FILE="./template.yaml"
 PARAMETER_FILE="./parameters/common.json"
@@ -16,17 +16,22 @@ PARAMETER_FILE="./parameters/common.json"
 # Check if the stack exists
 if aws cloudformation describe-stacks --stack-name "$STACK_NAME" --profile "$PROFILE" --output text >/dev/null 2>&1; then
     echo "Stack $STACK_NAME exists. Updating..."
-    if ! aws cloudformation update-stack \
+    if ! output=$(aws cloudformation update-stack \
         --stack-name "$STACK_NAME" \
         --template-body file://"$TEMPLATE_FILE" \
         --profile "$PROFILE" \
         --parameters file://"$PARAMETER_FILE" \
-        --capabilities CAPABILITY_NAMED_IAM; then
-        echo "Failed to update stack $STACK_NAME"
-        exit 1
+        --capabilities CAPABILITY_NAMED_IAM 2>&1); then
+        
+        if echo "$output" | grep -q "No updates are to be performed"; then
+            echo "No changes, stack $STACK_NAME is already up-to-date."
+        else 
+            echo "Failed to update stack $STACK_NAME"
+            exit 1
+        fi
+    else
+        aws cloudformation wait stack-update-complete --profile "$PROFILE" --stack-name "$STACK_NAME"
     fi
-
-    aws cloudformation wait stack-update-complete --profile "$PROFILE" --stack-name "$STACK_NAME"
 else
     echo "Stack $STACK_NAME does not exist. Creating..."
     if ! aws cloudformation create-stack \
@@ -37,9 +42,9 @@ else
         --capabilities CAPABILITY_NAMED_IAM; then
         echo "Failed to create stack $STACK_NAME"
         exit 1
+    else
+        aws cloudformation wait stack-create-complete --profile "$PROFILE" --stack-name "$STACK_NAME"
     fi
-
-    aws cloudformation wait stack-create-complete --profile "$PROFILE" --stack-name "$STACK_NAME"
 fi
 
 echo "Stack $STACK_NAME deployed successfully"

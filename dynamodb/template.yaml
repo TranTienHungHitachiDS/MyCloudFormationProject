@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+    Default: dev
+
+#------------------------------------------------------
+# DynamoDB Tables
+#------------------------------------------------------
+Resources:
+  DynamoDBTableLkv30MinShyuRyouedited20250626:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: "Delete"
+    Properties:
+      SSESpecification:
+        SSEEnabled: false
+      TableName: "lkv30MinShyuRyou_edited_20250626"
+      AttributeDefinitions:
+      - AttributeType: "S"
+        AttributeName: "kikId"
+      - AttributeType: "N"
+        AttributeName: "km"
+      ContributorInsightsSpecification:
+        Enabled: false
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      KeySchema:
+      - KeyType: "HASH"
+        AttributeName: "kikId"
+      - KeyType: "RANGE"
+        AttributeName: "km"
+      WarmThroughput:
+        ReadUnitsPerSecond: 12000
+        WriteUnitsPerSecond: 4000
+      DeletionProtectionEnabled: false
+      TimeToLiveSpecification:
+        Enabled: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-lkv30MinShyuRyou_edited_20250626"
+        - Key: Environment
+          Value: !Ref Env
+  
+  DynamoDBTableLkv30MinShyuRyouedited20250624:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: "Delete"
+    Properties:
+      SSESpecification:
+        SSEEnabled: false
+      TableName: "lkv30MinShyuRyou_edited_20250624"
+      AttributeDefinitions:
+      - AttributeType: "S"
+        AttributeName: "kikId"
+      - AttributeType: "N"
+        AttributeName: "km"
+      ContributorInsightsSpecification:
+        Enabled: false
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      KeySchema:
+      - KeyType: "HASH"
+        AttributeName: "kikId"
+      - KeyType: "RANGE"
+        AttributeName: "km"
+      WarmThroughput:
+        ReadUnitsPerSecond: 12000
+        WriteUnitsPerSecond: 4000
+      DeletionProtectionEnabled: false
+      TimeToLiveSpecification:
+        Enabled: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-lkv30MinShyuRyou_edited_20250624"
+        - Key: Environment
+          Value: !Ref Env
+
+
