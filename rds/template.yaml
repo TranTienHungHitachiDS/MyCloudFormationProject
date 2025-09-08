@@ -174,4 +174,3 @@ Resources:
         MaxConnectionsPercent: 90
         MaxIdleConnectionsPercent: 50
         ConnectionBorrowTimeout: 120
-

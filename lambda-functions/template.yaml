@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+  
+  MyLambdaAppImageUri:
+    Type: String
+
+#------------------------------------------------------
+# Lambda Functions
+#------------------------------------------------------
+Resources:
+  MyLambdaApp:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-${Env}-my-lambda-app"
+      Description: LambdaFunction using Docker image.
+      PackageType: Image
+      Role:
+        Fn::ImportValue:
+          Fn::Sub: ${ProjectName}-${Env}-my-lambda-execution-role-arn
+      Code:
+        ImageUri: !Ref MyLambdaAppImageUri
+      MemorySize: 128
+      Timeout: 10
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Env}-my-lambda-app
+        - Key: Environment
+          Value: !Ref Env

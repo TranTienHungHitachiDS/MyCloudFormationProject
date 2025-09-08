@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+
+#------------------------------------------------------
+# ECR Repositories
+#------------------------------------------------------
+Resources:
+  MyLambdaAppECRRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${ProjectName}-${Env}/my-lambda-app"
+      EmptyOnDelete: true
+
+#------------------------------------------------------
+# Outputs
+#------------------------------------------------------
+Outputs:
+  MyLambdaAppECRRepoName:
+    Value: !Ref MyLambdaAppECRRepo
+    Export:
+      Name: !Sub "${ProjectName}-${Env}-my-lambda-app-ecr-repo-name"

@@ -1,0 +1,14 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "mdms"
+    },
+    {
+        "ParameterKey": "Env",
+        "ParameterValue": "dev"
+    },
+    {
+        "ParameterKey": "MyLambdaAppImageUri",
+        "ParameterValue": "770825631895.dkr.ecr.us-east-1.amazonaws.com/mdms-dev/my-lambda-app:latest"  
+    }
+]
