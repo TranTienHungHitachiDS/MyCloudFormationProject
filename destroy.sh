@@ -17,8 +17,12 @@ delete_stack_if_exists() {
 }
 
 # Delete stacks in order
+delete_stack_if_exists "mdms-ecs-stack"
+delete_stack_if_exists "mdms-ecs-tf-stack"
+delete_stack_if_exists "mdms-lb-stack"
 delete_stack_if_exists "mdms-lambda-stack"
 delete_stack_if_exists "mdms-ecr-stack"
+delete_stack_if_exists "mdms-efs-stack"
 delete_stack_if_exists "mdms-dynamodb-stack"
 delete_stack_if_exists "mdms-rds-stack"
 delete_stack_if_exists "mdms-iam-stack"

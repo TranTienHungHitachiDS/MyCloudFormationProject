@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+
+  VpcIdOutput:
+    Type: String
+  PrivateDataSubnet1IdOutput:
+    Description: Name of the PrivateAppSubnet1Id Output
+    Type: String
+  PrivateDataSubnet2IdOutput:
+    Description: Name of the PrivateAppSubnet2Id Output
+    Type: String
+
+#------------------------------------------------------
+# Resources: EFS FileSystem
+#------------------------------------------------------
+Resources:
+  #------------------------------------------------------
+  # EFS Security Groups
+  #------------------------------------------------------
+  EfsSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${ProjectName}-${Env}-efs-sg
+      GroupDescription: Security group for EFS file system
+      VpcId: 
+        Fn::ImportValue: !Ref VpcIdOutput
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 2049
+          ToPort: 2049
+          CidrIp: "0.0.0.0/0"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-efs-sg"
+        - Key: Environment
+          Value: !Ref Env
+
+  #------------------------------------------------------
+  # EFS FileSystem
+  #------------------------------------------------------
+  EfsFileSystem:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::EFS::FileSystem"
+    DeletionPolicy: "Delete"
+    Properties:
+      PerformanceMode: "generalPurpose"
+      Encrypted: true
+      FileSystemProtection:
+        ReplicationOverwriteProtection: "ENABLED"
+      LifecyclePolicies:
+      - TransitionToIA: "AFTER_30_DAYS"
+      - TransitionToArchive: "AFTER_90_DAYS"
+      ThroughputMode: "elastic"
+      BackupPolicy:
+        Status: "ENABLED"
+      FileSystemTags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-efs-filesystem"
+        - Key: Environment
+          Value: !Ref Env
+
+  #------------------------------------------------------
+  # EFS Mount Targets
+  #------------------------------------------------------
+  EfsMountTarget1:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::EFS::MountTarget"
+    DeletionPolicy: "Delete"
+    Properties:
+      SecurityGroups: 
+       - !Ref EfsSg
+      FileSystemId: !Ref EfsFileSystem
+      SubnetId:
+        Fn::ImportValue: !Ref PrivateDataSubnet1IdOutput
+
+  EfsMountTarget2:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::EFS::MountTarget"
+    DeletionPolicy: "Delete"
+    Properties:
+      SecurityGroups: 
+       - !Ref EfsSg
+      FileSystemId: !Ref EfsFileSystem
+      SubnetId:
+        Fn::ImportValue: !Ref PrivateDataSubnet2IdOutput
+
+#------------------------------------------------------
+# Outputs
+#------------------------------------------------------
+Outputs:
+  EFSFileSystemId:
+    Description: Id of EFS File System
+    Value: !Ref EfsFileSystem
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-efs-filesystem-id

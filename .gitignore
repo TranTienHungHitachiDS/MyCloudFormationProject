@@ -1,1 +1,2 @@
-ecs/*
+docker-pull.sh
+docker-push.sh

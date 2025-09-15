@@ -1,0 +1,23 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "mdms"
+    },
+    {
+        "ParameterKey": "Env",
+        "ParameterValue": "dev"
+    },
+
+    {
+        "ParameterKey": "VpcIdOutput",
+        "ParameterValue": "mdms-dev-vpc-id"
+    },
+    {
+        "ParameterKey": "PrivateDataSubnet1IdOutput",
+        "ParameterValue": "mdms-dev-private-data-subnet-1-id"
+    },
+    {
+        "ParameterKey": "PrivateDataSubnet2IdOutput",
+        "ParameterValue": "mdms-dev-private-data-subnet-2-id"
+    }
+]

@@ -290,7 +290,7 @@ Outputs:
       Name: !Sub ${ProjectName}-${Env}-public-subnet-1-id
   PublicSubnet2Id:
     Description: ID of the public subnet 2
-    Value: !Ref PublicSubnet1
+    Value: !Ref PublicSubnet2
     Export:
       Name: !Sub ${ProjectName}-${Env}-public-subnet-2-id
 
