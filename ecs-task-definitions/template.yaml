@@ -1,0 +1,174 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+
+  BackendDockerImage:
+    Type: String
+  FrontendDockerImage:
+    Type: String
+  
+  BackendPort:
+    Type: Number
+  FrontendPort:
+    Type: Number
+  
+  EcsTaskRoleArnOutput:
+    Type: String
+  EcsTaskExecutionRoleArnOutput:
+    Type: String
+
+  DBCredentialArnOutput:
+    Description: The database credential secret arn
+    Type: String
+  DbUser:
+    Description: The root database username
+    Type: String
+  JDBCConnectionStringOutput:
+    Description: JDBC connection string for the master database
+    Type: String
+  
+  EfsFileSystemIdOutput:
+    Description: Output name of Id of EFS FileSystem resource
+    Type: String    
+
+Mappings:
+  TaskDefinitions:
+    Backend:
+      Name: backend
+      Cpu: 256
+      Memory: 512
+      DesiredCount: 1
+    Frontend:
+      Name: frontend
+      Cpu: 256
+      Memory: 512
+      DesiredCount: 1
+
+#------------------------------------------------------
+# Resources: RDS Cluster, DB Group, Instace 
+#------------------------------------------------------
+Resources:
+  #------------------------------------------------------
+  # ECS Task definitions
+  #------------------------------------------------------  
+  BackendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ProjectName}-${Env}-backend-family
+      TaskRoleArn:
+        Fn::ImportValue: !Ref EcsTaskRoleArnOutput
+      ExecutionRoleArn:
+        Fn::ImportValue: !Ref EcsTaskExecutionRoleArnOutput
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: !FindInMap [TaskDefinitions, Backend, Cpu]
+      Memory: !FindInMap [TaskDefinitions, Backend, Memory]  
+      ContainerDefinitions:
+        - Name: !FindInMap [TaskDefinitions, Backend, Name]
+          Image: !Ref BackendDockerImage
+          PortMappings:
+            - ContainerPort: !Ref BackendPort
+          Privileged: false
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: !FindInMap [TaskDefinitions, Backend, Name]
+          Environment:
+            - Name: JDBC_CONN_STRING
+              Value: 
+                Fn::ImportValue: !Ref JDBCConnectionStringOutput
+            - Name: DB_USER
+              Value: !Ref DbUser
+          Secrets:
+            - Name: DB_PASS
+              ValueFrom: 
+                Fn::ImportValue: !Ref DBCredentialArnOutput
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-backend-task-definition"
+        - Key: Environment
+          Value: !Ref Env
+
+  FrontendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ProjectName}-${Env}-frontend-family
+      TaskRoleArn:
+        Fn::ImportValue: !Ref EcsTaskRoleArnOutput
+      ExecutionRoleArn:
+        Fn::ImportValue: !Ref EcsTaskExecutionRoleArnOutput
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: !FindInMap [TaskDefinitions, Frontend, Cpu]
+      Memory: !FindInMap [TaskDefinitions, Frontend, Memory]
+      Volumes:
+        - Name: efs-volume
+          EFSVolumeConfiguration:
+            FileSystemId:
+              Fn::ImportValue: !Ref EfsFileSystemIdOutput
+            RootDirectory: "/"         
+            TransitEncryption: ENABLED
+            AuthorizationConfig:
+              IAM: ENABLED 
+      ContainerDefinitions:
+        - Name: !FindInMap [TaskDefinitions, Frontend, Name]
+          Image: !Ref FrontendDockerImage
+          PortMappings:
+            - ContainerPort: !Ref FrontendPort
+          Privileged: false
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: frontend
+          Environment:
+            - Name: API_ENDPOINT
+              Value: /
+          MountPoints:
+            - ContainerPath: /mnt/efs
+              SourceVolume: efs-volume
+              ReadOnly: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-frontend-task-definition"
+        - Key: Environment
+          Value: !Ref Env
+  
+  #------------------------------------------------------
+  # CloudWatch Log Group
+  #------------------------------------------------------ 
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub "/ecs/${ProjectName}"  
+      RetentionInDays: 7
+
+#------------------------------------------------------
+# Outputs 
+#------------------------------------------------------
+Outputs:
+  BackendTaskDefinitionArn:
+    Description: Arn of the backend taks definition
+    Value: !Ref BackendTaskDefinition
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-backend-task-definition-arn
+
+  FrontendTaskDefinitionArn:
+    Description: Arn of the frontend taks definition
+    Value: !Ref FrontendTaskDefinition
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-frontend-task-definition-arn

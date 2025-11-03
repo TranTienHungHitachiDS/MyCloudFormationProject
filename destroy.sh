@@ -9,7 +9,7 @@ delete_stack_if_exists() {
         echo "Deleting stack: $stack_name"
         aws cloudformation delete-stack --stack-name "$stack_name"
         
-        aws cloudformation wait stack-update-complete --profile "$PROFILE" --stack-name "$stack_name"
+        aws cloudformation wait stack-delete-complete --profile "$PROFILE" --stack-name "$stack_name"
         echo "Deleted stack $stack_name successfully"
     else
         echo "Stack $stack_name does not exist, skipping."
@@ -17,6 +17,12 @@ delete_stack_if_exists() {
 }
 
 # Delete stacks in order
+delete_stack_if_exists "mdms-ecs-stack"
+delete_stack_if_exists "mdms-ecs-tf-stack"
+delete_stack_if_exists "mdms-lb-stack"
+delete_stack_if_exists "mdms-lambda-stack"
+delete_stack_if_exists "mdms-ecr-stack"
+delete_stack_if_exists "mdms-efs-stack"
 delete_stack_if_exists "mdms-dynamodb-stack"
 delete_stack_if_exists "mdms-rds-stack"
 delete_stack_if_exists "mdms-iam-stack"

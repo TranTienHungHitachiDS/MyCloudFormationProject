@@ -15,12 +15,28 @@ Parameters:
   
   DbPort:
     Description: RDS database port
-    Type: String
+    Type: Number
   DbUser:
     Description: The root database username
     Type: String
   DbInstanceClass:
     Description: The compute instance class of database
+    Type: String
+  DbName:
+    Description: The init database name
+    Type: String
+  
+  VpcIdOutput:
+    Description: Name of the VpcId Output
+    Type: String
+  PrivateDataSubnet1IdOutput:
+    Description: Name of the PrivateDataSubnet1Id Output
+    Type: String
+  PrivateDataSubnet2IdOutput:
+    Description: Name of the PrivateDataSubnet2Id Output
+    Type: String
+  RdsProxyRoleArnOutput:
+    Description: Name of the RdsProxyRoleArn Output
     Type: String
 
 
@@ -56,8 +72,7 @@ Resources:
       GroupName: !Sub ${ProjectName}-${Env}-rds-sg
       GroupDescription: Security group for RDS Aurora Postgresql DB
       VpcId:
-        Fn::ImportValue:
-          Fn::Sub: "${ProjectName}-${Env}-vpc-id"
+        Fn::ImportValue: !Ref VpcIdOutput
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: !Ref DbPort
@@ -78,10 +93,8 @@ Resources:
       DBSubnetGroupDescription: "App DB Subnet Group"
       DBSubnetGroupName: !Sub "${ProjectName}-${Env}-rds-db-subnet-group"
       SubnetIds:
-      - Fn::ImportValue: 
-          Fn::Sub: "${ProjectName}-${Env}-private-data-subnet-1-id"
-      - Fn::ImportValue: 
-          Fn::Sub: "${ProjectName}-${Env}-private-data-subnet-2-id"
+      - Fn::ImportValue: !Ref PrivateDataSubnet1IdOutput
+      - Fn::ImportValue: !Ref PrivateDataSubnet2IdOutput
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Env}-rds-db-subnet-group"
@@ -100,19 +113,20 @@ Resources:
       DBClusterIdentifier: !Sub ${ProjectName}-${Env}-rds-db-cluster
       VpcSecurityGroupIds:
         - !Ref DbSecurityGroup
-      Engine: "aurora-postgresql"
-      EngineVersion: "16.6"
-      StorageType: "aurora"
+      Engine: "aurora-mysql"
+      EngineVersion: "8.0"
       DBSubnetGroupName: !Ref DbSubnetGroup
       StorageEncrypted: true
       # DeletionProtection: true
+      DatabaseName: !Ref DbName
       MasterUsername: !Ref DbUser
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${DBCredential}}}'
       BackupRetentionPeriod: 30
       EnableCloudwatchLogsExports:
         - "iam-db-auth-error"
         - "instance"
-        - "postgresql"
+        - "error"
+        - "slowquery"
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Env}-rds-db-cluster"
@@ -130,7 +144,7 @@ Resources:
       DBInstanceIdentifier: !Sub "${ProjectName}-rds-db-instance"
       DBClusterIdentifier: !Ref RdsDbCluster
       DBInstanceClass: !Ref DbInstanceClass #db.r7g.large
-      Engine: "aurora-postgresql"
+      Engine: "aurora-mysql"
       # PreferredMaintenanceWindow: wed:14:33-wed:15:03
       Tags:
         - Key: Name
@@ -145,10 +159,9 @@ Resources:
     Type: AWS::RDS::DBProxy
     Properties:
       DBProxyName: !Sub "${ProjectName}-${Env}-rds-db-proxy"
-      EngineFamily: POSTGRESQL
+      EngineFamily: MYSQL
       RoleArn:
-        Fn::ImportValue: 
-          Fn::Sub: ${ProjectName}-${Env}-rds-proxy-role-arn
+        Fn::ImportValue: !Ref RdsProxyRoleArnOutput 
       RequireTLS: true
       IdleClientTimeout: 1800
       Auth:
@@ -156,10 +169,8 @@ Resources:
           SecretArn: !Ref DBCredential
           IAMAuth: DISABLED
       VpcSubnetIds:
-        - Fn::ImportValue: 
-            Fn::Sub: "${ProjectName}-${Env}-private-data-subnet-1-id"
-        - Fn::ImportValue: 
-            Fn::Sub: "${ProjectName}-${Env}-private-data-subnet-2-id"
+        - Fn::ImportValue: !Ref PrivateDataSubnet1IdOutput
+        - Fn::ImportValue: !Ref PrivateDataSubnet2IdOutput
       VpcSecurityGroupIds:
         - !Ref DbSecurityGroup
 
@@ -175,3 +186,24 @@ Resources:
         MaxIdleConnectionsPercent: 50
         ConnectionBorrowTimeout: 120
 
+#------------------------------------------------------
+# Outputs 
+#------------------------------------------------------
+Outputs:
+  DBCredentialSecretArn:
+    Description: Name of the secret containing the database credential
+    Value: !Ref DBCredential
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-db-credential-arn
+  JDBCConnectionString:
+    Description: JDBC connection string for the master database
+    Value: !Join
+      - ""
+      - - jdbc:mysql://
+        - !GetAtt RdsDbCluster.Endpoint.Address
+        - ':'
+        - !GetAtt RdsDbCluster.Endpoint.Port
+        - /
+        - !Ref DbName
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-jdbc-conn-string

@@ -7,9 +7,10 @@
         "ParameterKey": "Env",
         "ParameterValue": "dev"
     },
+
     {
         "ParameterKey": "KmsCallerAccountId",
-        "ParameterValue": "770825631895"
+        "ParameterValue": ""
     },
     {
         "ParameterKey": "DbPort",
@@ -26,5 +27,26 @@
     {
         "ParameterKey": "DbPort",
         "ParameterValue": "5432"
+    },
+    {
+        "ParameterKey": "DbName",
+        "ParameterValue": "dkhpdb"
+    },
+
+    {
+        "ParameterKey": "VpcIdOutput",
+        "ParameterValue": "mdms-dev-vpc-id"
+    },
+    {
+        "ParameterKey": "PrivateDataSubnet1IdOutput",
+        "ParameterValue": "mdms-dev-private-data-subnet-1-id"
+    },
+    {
+        "ParameterKey": "PrivateDataSubnet2IdOutput",
+        "ParameterValue": "mdms-dev-private-data-subnet-2-id"
+    },
+    {
+        "ParameterKey": "RdsProxyRoleArnOutput",
+        "ParameterValue": "mdms-dev-rds-proxy-role-arn"
     }
 ]

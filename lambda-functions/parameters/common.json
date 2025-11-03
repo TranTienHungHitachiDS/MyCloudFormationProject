@@ -1,0 +1,14 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "mdms"
+    },
+    {
+        "ParameterKey": "Env",
+        "ParameterValue": "dev"
+    },
+    {
+        "ParameterKey": "MyLambdaAppImageUri",
+        "ParameterValue": ""  
+    }
+]

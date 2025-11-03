@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+
+#------------------------------------------------------
+# ECR Repositories
+#------------------------------------------------------
+Resources:
+  MyLambdaAppECRRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${ProjectName}-${Env}/my-lambda-app"
+      EmptyOnDelete: true
+
+  BackendAppRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${ProjectName}-${Env}/backend-app"
+      EmptyOnDelete: true
+
+  FrontendAppRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${ProjectName}-${Env}/frontend-app"
+      EmptyOnDelete: true
+
+#------------------------------------------------------
+# Outputs
+#------------------------------------------------------
+Outputs:
+  MyLambdaAppECRRepoName:
+    Value: !Ref MyLambdaAppECRRepo
+    Export:
+      Name: !Sub "${ProjectName}-${Env}-my-lambda-app-ecr-repo-name"
+  BackendAppRepoName:
+    Value: !Ref BackendAppRepo
+    Export:
+      Name: !Sub "${ProjectName}-${Env}-backend-app-repo-name"
+  FrontendAppRepoName:
+    Value: !Ref FrontendAppRepo
+    Export:
+      Name: !Sub "${ProjectName}-${Env}-frontend-app-repo-name"

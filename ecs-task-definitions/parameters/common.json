@@ -1,0 +1,54 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "mdms"
+    },
+    {
+        "ParameterKey": "Env",
+        "ParameterValue": "dev"
+    },
+    
+    {
+        "ParameterKey": "BackendDockerImage",
+        "ParameterValue": ""    
+    },
+    {
+        "ParameterKey": "FrontendDockerImage",
+        "ParameterValue": ""    
+    },
+    {
+        "ParameterKey": "BackendPort",
+        "ParameterValue": "8080"   
+    },
+    {
+        "ParameterKey": "FrontendPort",
+        "ParameterValue": "80"   
+    },
+
+    {
+        "ParameterKey": "EcsTaskRoleArnOutput",
+        "ParameterValue": "mdms-dev-ecs-task-role-arn"  
+    },
+    {
+        "ParameterKey": "EcsTaskExecutionRoleArnOutput",
+        "ParameterValue": "mdms-dev-ecs-task-execution-role-arn" 
+    },
+    
+    {
+        "ParameterKey": "DBCredentialArnOutput",
+        "ParameterValue": "mdms-dev-db-credential-arn"  
+    },
+    {
+        "ParameterKey": "DbUser",
+        "ParameterValue": "postgres" 
+    },    
+    {
+        "ParameterKey": "JDBCConnectionStringOutput",
+        "ParameterValue": "mdms-dev-jdbc-conn-string" 
+    },
+    
+    {
+        "ParameterKey": "EfsFileSystemIdOutput",
+        "ParameterValue": "mdms-dev-efs-filesystem-id" 
+    }
+]

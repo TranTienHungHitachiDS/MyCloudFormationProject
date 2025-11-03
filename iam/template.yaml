@@ -44,8 +44,13 @@ Resources:
           - Resource: "*"
             Action:
               - secretsmanager:GetSecretValue
+              - rds-db:connect
+              - rds:DescribeDBProxies
+              - rds:DescribeDBProxyTargetGroups
+              - rds:RegisterDBProxyTargets
+              - rds:DeregisterDBProxyTargets
             Effect: Allow
-            Sid: GetSecretValue
+            Sid: SecretManagerAndRdsPermissions
           - Sid: DecryptSecretValue
             Condition:
               StringEquals:
@@ -57,6 +62,114 @@ Resources:
       Roles:
         - !Ref RdsProxyRole
 
+  #------------------------------------------------------
+  # Lambda Execution Roles
+  #------------------------------------------------------
+  MyLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-${Env}-lambda-execution-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  #------------------------------------------------------
+  # Ecs Roles
+  #------------------------------------------------------
+  EcsTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-${Env}-ecs-task-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+      Policies:
+        - PolicyName: SsmMessagesAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssmmessages:CreateControlChannel"
+                  - "ssmmessages:CreateDataChannel"
+                  - "ssmmessages:OpenControlChannel"
+                  - "ssmmessages:OpenDataChannel"
+                Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Env}-ecs-task-role
+        - Key: Environment
+          Value: !Ref Env
+
+  EcsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-${Env}-ecs-task-execution-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: SecretManagerAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                  - "secretsmanager:DescribeSecret"
+                Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Env}-ecs-task-execution-role
+        - Key: Environment
+          Value: !Ref Env
+
+  EcsAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-${Env}-ecs-autoscaling-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs.application-autoscaling.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: MyAutoscalingECSServicePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:DescribeServices
+                  - ecs:UpdateService
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:PutMetricAlarm
+                Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Env}-ecs-autoscaling-role
+        - Key: Environment
+          Value: !Ref Env
+
 #------------------------------------------------------
 # Outputs 
 #------------------------------------------------------
@@ -66,3 +179,23 @@ Outputs:
     Value: !GetAtt RdsProxyRole.Arn
     Export:
       Name: !Sub ${ProjectName}-${Env}-rds-proxy-role-arn
+  MyLambdaExecutionRoleArn:
+    Description: Lambda execution role arn of 'my lambda app'
+    Value: !GetAtt MyLambdaExecutionRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-my-lambda-execution-role-arn
+  EcsTaskRoleArn:
+    Description: Ecs Task Role Arn
+    Value: !GetAtt EcsTaskRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-ecs-task-role-arn
+  EcsTaskExecutionRoleArn:
+    Description: Ecs Task Execution Role Arn
+    Value: !GetAtt EcsTaskExecutionRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-ecs-task-execution-role-arn
+  EcsAutoScalingRoleArn:
+    Description: Ecs Auto Scaling Role Arn
+    Value: !GetAtt EcsAutoScalingRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-ecs-auto-scaling-role-arn

@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+#------------------------------------------------------
+# Parameters
+#------------------------------------------------------
+Parameters:
+  ProjectName:
+    Type: String
+  Env:
+    Type: String
+  
+  VpcIdOutput:
+    Type: String
+  PublicSubnet1IdOutput:
+    Type: String
+  PublicSubnet2IdOutput:
+    Type: String
+
+  BackendPort:
+    Type: Number
+  FrontendPort:
+    Type: Number
+
+#------------------------------------------------------
+# Resources: load balancer, target group, listener 
+#------------------------------------------------------
+Resources:
+  #------------------------------------------------------
+  # Secuirty Groups
+  #------------------------------------------------------
+  LoadBalancerSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${ProjectName}-${Env}-lb-sg
+      GroupDescription: Load balancer SG
+      VpcId:
+        Fn::ImportValue: !Ref VpcIdOutput
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-lb-sg"
+        - Key: Environment
+          Value: !Ref Env
+
+  #------------------------------------------------------
+  # Load Balancer
+  #------------------------------------------------------
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets:
+        - Fn::ImportValue: !Ref PublicSubnet1IdOutput
+        - Fn::ImportValue: !Ref PublicSubnet2IdOutput
+      SecurityGroups: 
+        - !Ref LoadBalancerSg
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-lb"
+        - Key: Environment
+          Value: !Ref Env
+
+  #------------------------------------------------------
+  # Target Groups
+  #------------------------------------------------------
+  BackendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Ref VpcIdOutput
+      Port: !Ref BackendPort
+      Protocol: HTTP
+      TargetType: ip
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /actuator/health
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-backend-tg"
+        - Key: Environment
+          Value: !Ref Env
+  
+  FrontendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Ref VpcIdOutput
+      Port: !Ref FrontendPort
+      Protocol: HTTP
+      TargetType: ip
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Env}-frontend-tg"
+        - Key: Environment
+          Value: !Ref Env
+
+  #------------------------------------------------------
+  # Listeners And Listener Rules
+  #------------------------------------------------------
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref FrontendTargetGroup
+
+  BackendListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref Listener
+      Priority: 10
+      Conditions:
+        - Field:  path-pattern
+          Values:
+            - /api/*
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroup
+
+
+#------------------------------------------------------
+# Outputs 
+#------------------------------------------------------
+Outputs:
+  LoadBalancerSgId:
+    Value: !Ref LoadBalancerSg
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-lb-sg-id
+  BackendTargetGroupArn:
+    Description: Backend Target group
+    Value: !Ref BackendTargetGroup
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-backend-tg-arn
+  FrontendTargetGroupArn:
+    Description: Frontend Target group
+    Value: !Ref FrontendTargetGroup
+    Export:
+      Name: !Sub ${ProjectName}-${Env}-frontend-tg-arn
