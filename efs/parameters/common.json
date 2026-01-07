@@ -1,7 +1,7 @@
 [
     {
         "ParameterKey": "ProjectName",
-        "ParameterValue": "mdms"
+        "ParameterValue": "dkhp"
     },
     {
         "ParameterKey": "Env",
@@ -10,14 +10,14 @@
 
     {
         "ParameterKey": "VpcIdOutput",
-        "ParameterValue": "mdms-dev-vpc-id"
+        "ParameterValue": "dkhp-dev-vpc-id"
     },
     {
         "ParameterKey": "PrivateDataSubnet1IdOutput",
-        "ParameterValue": "mdms-dev-private-data-subnet-1-id"
+        "ParameterValue": "dkhp-dev-private-data-subnet-1-id"
     },
     {
         "ParameterKey": "PrivateDataSubnet2IdOutput",
-        "ParameterValue": "mdms-dev-private-data-subnet-2-id"
+        "ParameterValue": "dkhp-dev-private-data-subnet-2-id"
     }
 ]

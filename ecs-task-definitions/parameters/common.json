@@ -1,7 +1,7 @@
 [
     {
         "ParameterKey": "ProjectName",
-        "ParameterValue": "mdms"
+        "ParameterValue": "dkhp"
     },
     {
         "ParameterKey": "Env",
@@ -27,16 +27,16 @@
 
     {
         "ParameterKey": "EcsTaskRoleArnOutput",
-        "ParameterValue": "mdms-dev-ecs-task-role-arn"  
+        "ParameterValue": "dkhp-dev-ecs-task-role-arn"  
     },
     {
         "ParameterKey": "EcsTaskExecutionRoleArnOutput",
-        "ParameterValue": "mdms-dev-ecs-task-execution-role-arn" 
+        "ParameterValue": "dkhp-dev-ecs-task-execution-role-arn" 
     },
     
     {
         "ParameterKey": "DBCredentialArnOutput",
-        "ParameterValue": "mdms-dev-db-credential-arn"  
+        "ParameterValue": "dkhp-dev-db-credential-arn"  
     },
     {
         "ParameterKey": "DbUser",
@@ -44,11 +44,11 @@
     },    
     {
         "ParameterKey": "JDBCConnectionStringOutput",
-        "ParameterValue": "mdms-dev-jdbc-conn-string" 
+        "ParameterValue": "dkhp-dev-jdbc-conn-string" 
     },
     
     {
         "ParameterKey": "EfsFileSystemIdOutput",
-        "ParameterValue": "mdms-dev-efs-filesystem-id" 
+        "ParameterValue": "dkhp-dev-efs-filesystem-id" 
     }
 ]

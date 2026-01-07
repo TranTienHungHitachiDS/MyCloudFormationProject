@@ -1,7 +1,7 @@
 [
     {
         "ParameterKey": "ProjectName",
-        "ParameterValue": "mdms"
+        "ParameterValue": "dkhp"
     },
     {
         "ParameterKey": "Env",
@@ -19,34 +19,34 @@
 
     {
         "ParameterKey": "VpcIdOutput",
-        "ParameterValue": "mdms-dev-vpc-id"
+        "ParameterValue": "dkhp-dev-vpc-id"
     },
     {
         "ParameterKey": "PrivateAppSubnet1IdOutput",
-        "ParameterValue": "mdms-dev-private-app-subnet-1-id"
+        "ParameterValue": "dkhp-dev-private-app-subnet-1-id"
     },
     {
         "ParameterKey": "PrivateAppSubnet2IdOutput",
-        "ParameterValue": "mdms-dev-private-app-subnet-2-id"
+        "ParameterValue": "dkhp-dev-private-app-subnet-2-id"
     },
     {
         "ParameterKey": "EcsAutoScalingRoleArnOutput",
-        "ParameterValue": "mdms-dev-ecs-auto-scaling-role-arn"   
+        "ParameterValue": "dkhp-dev-ecs-auto-scaling-role-arn"   
     },
     {
         "ParameterKey": "BackendTargetGroupArnOutput",
-        "ParameterValue": "mdms-dev-backend-tg-arn"
+        "ParameterValue": "dkhp-dev-backend-tg-arn"
     },
     {
         "ParameterKey": "FrontendTargetGroupArnOutput",
-        "ParameterValue": "mdms-dev-frontend-tg-arn"   
+        "ParameterValue": "dkhp-dev-frontend-tg-arn"   
     },
     {
         "ParameterKey": "BackendTaskDefinitionArnOutput",
-        "ParameterValue": "mdms-dev-backend-task-definition-arn"
+        "ParameterValue": "dkhp-dev-backend-task-definition-arn"
     },
     {
         "ParameterKey": "FrontendTaskDefinitionArnOutput",
-        "ParameterValue": "mdms-dev-frontend-task-definition-arn"
+        "ParameterValue": "dkhp-dev-frontend-task-definition-arn"
     }
 ]
