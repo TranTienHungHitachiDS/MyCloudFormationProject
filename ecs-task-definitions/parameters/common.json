@@ -10,11 +10,11 @@
     
     {
         "ParameterKey": "BackendDockerImage",
-        "ParameterValue": ""    
+        "ParameterValue": "hungtran679/dkhp_demo-backend-service:ecs"    
     },
     {
         "ParameterKey": "FrontendDockerImage",
-        "ParameterValue": ""    
+        "ParameterValue": "hungtran679/dkhp_demo-frontend-service:ecs"    
     },
     {
         "ParameterKey": "BackendPort",

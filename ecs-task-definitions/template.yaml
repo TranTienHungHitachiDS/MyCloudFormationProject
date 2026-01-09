@@ -135,7 +135,7 @@ Resources:
               awslogs-stream-prefix: frontend
           Environment:
             - Name: API_ENDPOINT
-              Value: /
+              Value: "http://dkhp-l-loadb-a2yzcjyta3js-677896463.us-east-1.elb.amazonaws.com/api"
           MountPoints:
             - ContainerPath: /mnt/efs
               SourceVolume: efs-volume
